@@ -11,6 +11,7 @@ Lo que incluye esta entrega:
 - Node.js y Express.
 - MySQL para la base de datos.
 - Git para el control de versiones.
+- Aunteticación de usuarios con JWT y Thunder Client.
 
 ### Integrantes:
 - Diego Paúl Dueñas Flores
