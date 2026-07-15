@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Olimpiadas UTP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F7F4EE;
+    --ink:#171B26;
+    --primary:#B3122A;
+    --primary-dark:#7D0D1E;
+    --gold:#D4A017;
+    --success:#2F7D4F;
+    --danger:#C0392B;
+    --card:#FFFFFF;
+    --line:#E4DFD3;
+    --muted:#6B6558;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{
+    font-family:'Oswald',sans-serif;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+  }
+  .mono{ font-family:'JetBrains Mono',monospace; }
+
+  /* ---- Login gate ---- */
+  .login-screen{
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    background:var(--ink); background-image:radial-gradient(circle at 20% 20%, rgba(179,18,42,0.25), transparent 45%),
+      radial-gradient(circle at 80% 80%, rgba(212,160,23,0.15), transparent 45%);
+    padding:20px;
+  }
+  .login-card{
+    width:100%; max-width:420px; background:var(--card); border-radius:14px; padding:32px 32px 28px;
+    box-shadow:0 20px 60px rgba(0,0,0,0.35);
+  }
+  .login-brand{ text-align:center; margin-bottom:22px; }
+  .login-brand .bar{ display:inline-block; width:34px; height:6px; background:var(--gold); margin-bottom:10px; }
+  .login-brand h1{ font-size:24px; margin:0; color:var(--ink); }
+  .login-brand span{ font-size:12px; color:var(--muted); letter-spacing:0.06em; }
+
+  .auth-tabs{ display:flex; border-bottom:1px solid var(--line); margin-bottom:20px; }
+  .auth-tab{
+    flex:1; text-align:center; padding:10px 0; cursor:pointer; font-family:'Oswald',sans-serif;
+    font-size:13px; letter-spacing:0.05em; text-transform:uppercase; color:var(--muted);
+    border-bottom:2px solid transparent;
+  }
+  .auth-tab.active{ color:var(--primary); border-bottom-color:var(--primary); }
+  .auth-panel{ display:flex; flex-direction:column; gap:12px; }
+  .auth-panel.hidden{ display:none; }
+
+  /* ---- Layout (post-login) ---- */
+  .app{ display:flex; min-height:100vh; }
+  .sidebar{
+    width:230px;
+    background:var(--ink);
+    color:#fff;
+    display:flex;
+    flex-direction:column;
+    padding:24px 0;
+    flex-shrink:0;
+  }
+  .brand{
+    padding:0 20px 20px;
+    border-bottom:1px solid rgba(255,255,255,0.12);
+    margin-bottom:12px;
+  }
+  .brand .bar{
+    display:inline-block; width:28px; height:6px; background:var(--gold); margin-bottom:8px;
+  }
+  .brand h1{ font-size:20px; margin:0; color:#fff; }
+  .brand span{ font-size:11px; color:#9aa; letter-spacing:0.08em; }
+
+  .nav-item{
+    padding:12px 20px;
+    cursor:pointer;
+    font-family:'Oswald',sans-serif;
+    font-size:14px;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    color:#c9cad1;
+    border-left:3px solid transparent;
+    transition:all .15s ease;
+  }
+  .nav-item:hover{ background:rgba(255,255,255,0.05); color:#fff; }
+  .nav-item.active{ background:rgba(179,18,42,0.25); color:#fff; border-left-color:var(--gold); }
+
+  .sidebar-foot{ margin-top:auto; padding:16px 20px; font-size:11px; color:#8b8f9c; }
+  .session-pill{
+    margin:16px 20px 0; padding:10px 10px; border-radius:6px;
+    background:rgba(255,255,255,0.06); font-size:12px;
+  }
+  .session-pill b{ color:var(--gold); display:block; margin-bottom:6px; word-break:break-all; }
+  .session-pill .btn{ width:100%; margin-top:2px; }
+
+  .main{ flex:1; padding:32px 40px; max-width:1100px; }
+  .topbar{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    margin-bottom:24px; border-bottom:2px solid var(--ink); padding-bottom:12px;
+  }
+  .topbar h2{ margin:0; font-size:26px; }
+  .topbar p{ margin:2px 0 0; color:var(--muted); font-size:13px; }
+
+  .config-row{ display:flex; gap:8px; align-items:center; margin-bottom:0; }
+  .config-row input{ flex:1; }
+  .config-row label{ font-size:11px; color:var(--muted); white-space:nowrap; }
+
+  /* ---- Cards / Forms ---- */
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:20px 24px;
+    margin-bottom:20px;
+  }
+  .card h3{ margin:0 0 14px; font-size:17px; color:var(--primary-dark); }
+  .grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; }
+  label.field{ font-size:12px; color:var(--muted); display:block; margin-bottom:4px; }
+  input, select{
+    width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:6px;
+    font-family:'Inter',sans-serif; font-size:14px; background:#fdfcfa;
+  }
+  input:focus, select:focus{ outline:2px solid var(--primary); outline-offset:1px; }
+
+  .btn{
+    display:inline-block; border:none; border-radius:6px; padding:10px 18px;
+    font-family:'Oswald',sans-serif; font-size:13px; letter-spacing:0.05em; text-transform:uppercase;
+    cursor:pointer; transition:transform .1s ease;
+  }
+  .btn:active{ transform:scale(0.97); }
+  .btn-primary{ background:var(--primary); color:#fff; }
+  .btn-primary:hover{ background:var(--primary-dark); }
+  .btn-ghost{ background:transparent; border:1px solid var(--line); color:var(--ink); }
+  .btn-ghost:hover{ border-color:var(--ink); }
+  .btn-danger{ background:#fff; color:var(--danger); border:1px solid var(--danger); padding:6px 10px; font-size:11px; }
+  .btn-danger:hover{ background:var(--danger); color:#fff; }
+  .btn-small{ padding:6px 10px; font-size:11px; }
+  .btn-block{ width:100%; }
+  .btn-dark-ghost{ background:rgba(255,255,255,0.08); color:#fff; border:1px solid rgba(255,255,255,0.2); }
+  .btn-dark-ghost:hover{ background:rgba(255,255,255,0.16); }
+
+  table{ width:100%; border-collapse:collapse; font-size:13.5px; }
+  th{
+    text-align:left; font-family:'Oswald',sans-serif; font-size:11.5px; letter-spacing:0.06em;
+    text-transform:uppercase; color:var(--muted); border-bottom:2px solid var(--ink); padding:8px 6px;
+  }
+  td{ padding:8px 6px; border-bottom:1px solid var(--line); }
+  tr:hover td{ background:#faf7f1; }
+  .actions-cell{ display:flex; gap:6px; }
+
+  .msg{
+    padding:10px 14px; border-radius:6px; font-size:13.5px; margin-bottom:16px;
+    display:none; align-items:center; gap:8px;
+  }
+  .msg.show{ display:flex; }
+  .msg.ok{ background:#e7f4ec; color:var(--success); border:1px solid #bfe3cc; }
+  .msg.err{ background:#fbe9e7; color:var(--danger); border:1px solid #f0c4be; }
+
+  /* ---- Scoreboard (dashboard signature) ---- */
+  .scoreboard{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-bottom:20px;
+  }
+  .score-tile{
+    background:var(--ink); color:#fff; border-radius:10px; padding:18px 20px; position:relative; overflow:hidden;
+  }
+  .score-tile::before{
+    content:""; position:absolute; top:0; left:0; width:100%; height:4px; background:var(--gold);
+  }
+  .score-tile .label{ font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:#a9adb8; font-family:'Oswald',sans-serif; }
+  .score-tile .value{ font-family:'JetBrains Mono',monospace; font-size:34px; font-weight:700; color:var(--gold); margin-top:4px; }
+  .score-tile .sub{ font-size:12px; color:#c9cad1; margin-top:2px; }
+
+  .hidden{ display:none !important; }
+  .empty{ color:var(--muted); font-size:13px; font-style:italic; padding:12px 0; }
+  .row-inline{ display:flex; gap:10px; align-items:center; margin-bottom:10px; }
+  .tag{
+    display:inline-block; font-family:'JetBrains Mono',monospace; font-size:11px; background:#f1ede2;
+    border:1px solid var(--line); border-radius:4px; padding:2px 6px; color:var(--muted);
+  }
+  .tag-rol{
+    display:inline-block; font-family:'Oswald',sans-serif; font-size:10.5px; letter-spacing:0.05em; text-transform:uppercase;
+    background:rgba(179,18,42,0.1); color:var(--primary-dark); border-radius:4px; padding:2px 8px;
+  }
+  @media (max-width: 800px){
+    .app{ flex-direction:column; }
+    .sidebar{ width:100%; flex-direction:row; overflow-x:auto; padding:12px 0; }
+    .brand{ display:none; }
+    .main{ padding:20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN GATE ================= -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="bar"></div>
+      <h1>Olimpiadas</h1>
+      <span>Panel de administración</span>
+    </div>
+
+    <div id="msgBoxLogin" class="msg"></div>
+
+    <div class="auth-tabs">
+      <div class="auth-tab active" data-tab="login">Iniciar sesión</div>
+      <div class="auth-tab" data-tab="registro">Registrarse</div>
+    </div>
+
+    <div class="auth-panel" id="panel-login">
+      <div>
+        <label class="field">Correo</label>
+        <input id="loginCorreo" type="email" placeholder="correo@utp.edu.pe" />
+      </div>
+      <div>
+        <label class="field">Contraseña</label>
+        <input id="loginPassword" type="password" placeholder="••••••••" />
+      </div>
+      <button class="btn btn-primary btn-block" id="loginBtn">Ingresar</button>
+    </div>
+
+    <div class="auth-panel hidden" id="panel-registro">
+      <div>
+        <label class="field">Nombre</label>
+        <input id="regNombre" placeholder="Nombre completo" />
+      </div>
+      <div>
+        <label class="field">Correo</label>
+        <input id="regCorreo" type="email" placeholder="correo@utp.edu.pe" />
+      </div>
+      <div>
+        <label class="field">Contraseña</label>
+        <input id="regPassword" type="password" placeholder="••••••••" />
+      </div>
+      <div>
+        <label class="field">Rol</label>
+        <select id="regRol">
+          <option value="coordinador">Coordinador</option>
+          <option value="delegado">Delegado</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <button class="btn btn-primary btn-block" id="regBtn">Registrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= APP (post-login) ================= -->
+<div class="app hidden" id="appScreen">
+  <div class="sidebar">
+    <div class="brand">
+      <div class="bar"></div>
+      <h1>Olimpiadas</h1>
+      <span>Panel de administración</span>
+    </div>
+    <div class="nav-item active" data-view="instituciones">Instituciones</div>
+    <div class="nav-item" data-view="equipos">Equipos</div>
+    <div class="nav-item" data-view="jugadores">Jugadores</div>
+    <div class="nav-item" data-view="usuarios">Usuarios</div>
+    <div class="nav-item" data-view="notificaciones">Notificaciones</div>
+    <div class="nav-item" data-view="reportes">Reportes</div>
+
+    <div class="session-pill">
+      <b id="sessionEmail">usuario</b>
+      <button class="btn btn-dark-ghost btn-small btn-block" id="logoutBtn">Cerrar sesión</button>
+    </div>
+    <div class="sidebar-foot">API conectada a tu backend Express</div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <h2 id="viewTitle">Instituciones</h2>
+        <p id="viewSubtitle">Gestión de instituciones participantes</p>
+      </div>
+    </div>
+
+    <div id="msgBox" class="msg"></div>
+
+    <!-- ================= INSTITUCIONES ================= -->
+    <div class="view" id="view-instituciones">
+      <div class="card">
+        <h3>Nueva institución</h3>
+        <div class="grid">
+          <div>
+            <label class="field">Nombre</label>
+            <input id="instNombre" placeholder="Nombre de la institución" />
+          </div>
+          <div>
+            <label class="field">País</label>
+            <input id="instPais" placeholder="País" />
+          </div>
+        </div>
+        <div style="margin-top:14px;">
+          <button class="btn btn-primary" id="instCreateBtn">Registrar institución</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Instituciones registradas</h3>
+        <table id="instTable">
+          <thead><tr><th>ID</th><th>Nombre</th><th>País</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <div class="empty hidden" id="instEmpty">Aún no hay instituciones registradas.</div>
+      </div>
+    </div>
+
+    <!-- ================= EQUIPOS ================= -->
+    <div class="view hidden" id="view-equipos">
+      <div class="card">
+        <h3>Nuevo equipo</h3>
+        <div class="grid">
+          <div>
+            <label class="field">Nombre</label>
+            <input id="eqNombre" placeholder="Nombre del equipo" />
+          </div>
+          <div>
+            <label class="field">Deporte</label>
+            <input id="eqDeporte" placeholder="Ej: futsal, vóley" />
+          </div>
+          <div>
+            <label class="field">Institución</label>
+            <select id="eqInstitucion"></select>
+          </div>
+        </div>
+        <div style="margin-top:14px;">
+          <button class="btn btn-primary" id="eqCreateBtn">Registrar equipo</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Equipos registrados</h3>
+        <table id="eqTable">
+          <thead><tr><th>ID</th><th>Nombre</th><th>Deporte</th><th>Institución</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <div class="empty hidden" id="eqEmpty">Aún no hay equipos registrados.</div>
+      </div>
+    </div>
+
+    <!-- ================= JUGADORES ================= -->
+    <div class="view hidden" id="view-jugadores">
+      <div class="card">
+        <h3>Nuevo jugador</h3>
+        <div class="grid">
+          <div>
+            <label class="field">Nombre</label>
+            <input id="jNombre" placeholder="Nombre del jugador" />
+          </div>
+          <div>
+            <label class="field">Edad</label>
+            <input id="jEdad" type="number" placeholder="Edad" />
+          </div>
+          <div>
+            <label class="field">Equipo</label>
+            <select id="jEquipo"></select>
+          </div>
+        </div>
+        <div style="margin-top:14px;">
+          <button class="btn btn-primary" id="jCreateBtn">Registrar jugador</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Jugadores registrados</h3>
+        <table id="jTable">
+          <thead><tr><th>ID</th><th>Nombre</th><th>Edad</th><th>Equipo</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <div class="empty hidden" id="jEmpty">Aún no hay jugadores registrados.</div>
+      </div>
+    </div>
+
+    <!-- ================= USUARIOS ================= -->
+    <div class="view hidden" id="view-usuarios">
+      <div class="card"> 
+        <h3>Registrar nuevo usuario</h3>
+        <div class="grid">
+          <div>
+            <label class="field">Nombre</label>
+            <input id="uNombre" placeholder="Nombre completo" />
+          </div>
+          <div>
+            <label class="field">Correo</label>
+            <input id="uCorreo" type="email" placeholder="correo@utp.edu.pe" />
+          </div>
+          <div>
+            <label class="field">Contraseña</label>
+            <input id="uPassword" type="password" placeholder="••••••••" />
+          </div>
+          <div>
+            <label class="field">Rol</label>
+            <select id="uRol">
+              <option value="coordinador">Coordinador</option>
+              <option value="delegado">Delegado</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-top:14px;">
+          <button class="btn btn-primary" id="uCreateBtn">Registrar usuario</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Usuarios registrados</h3>
+        <p style="font-size:12px;color:var(--muted);margin-top:-8px;">Requiere el endpoint <span class="mono">GET /usuarios</span> en tu backend (ver instrucciones del chat).</p>
+        <table id="uTable">
+          <thead><tr><th>ID</th><th>Nombre</th><th>Correo</th><th>Rol</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <div class="empty hidden" id="uEmpty">Aún no hay usuarios registrados, o falta agregar el endpoint GET /usuarios.</div>
+      </div>
+    </div>
+
+    <!-- ================= NOTIFICACIONES ================= -->
+    <div class="view hidden" id="view-notificaciones">
+      <div class="card">
+        <h3>Avisar encuentro programado</h3>
+        <div class="grid">
+          <div>
+            <label class="field">Correo destino</label>
+            <input id="notiCorreo" type="email" placeholder="coordinador@utp.edu.pe" />
+          </div>
+          <div>
+            <label class="field">Equipo 1</label>
+            <input id="notiEquipo1" placeholder="Nombre equipo 1" />
+          </div>
+          <div>
+            <label class="field">Equipo 2</label>
+            <input id="notiEquipo2" placeholder="Nombre equipo 2" />
+          </div>
+          <div>
+            <label class="field">Deporte</label>
+            <input id="notiDeporte" placeholder="Ej: básquet" />
+          </div>
+          <div>
+            <label class="field">Fecha</label>
+            <input id="notiFecha" type="date" />
+          </div>
+          <div>
+            <label class="field">Hora</label>
+            <input id="notiHora" type="time" />
+          </div>
+        </div>
+        <div style="margin-top:14px;">
+          <button class="btn btn-primary" id="notiBtn">Enviar notificación</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= REPORTES ================= -->
+    <div class="view hidden" id="view-reportes">
+      <div class="scoreboard" id="dashboardTiles">
+        <div class="score-tile">
+          <div class="label">Jugadores registrados</div>
+          <div class="value mono" id="tileJugadores">--</div>
+        </div>
+        <div class="score-tile">
+          <div class="label">Equipos inscritos</div>
+          <div class="value mono" id="tileEquipos">--</div>
+        </div>
+        <div class="score-tile">
+          <div class="label">Equipo líder</div>
+          <div class="value mono" id="tileEquipoLider" style="font-size:20px;">--</div>
+          <div class="sub" id="tileEquipoLiderSub"></div>
+        </div>
+      </div>
+      <div class="card">
+        <button class="btn btn-ghost btn-small" id="refreshDashboardBtn">Actualizar dashboard</button>
+      </div>
+
+      <div class="card">
+        <h3>Máximos anotadores — todas las disciplinas</h3>
+        <p style="font-size:12px;color:var(--muted);margin-top:-8px;">Se genera automáticamente según los deportes registrados en Equipos.</p>
+        <div id="allRankings"></div>
+        <div class="empty hidden" id="allRankingsEmpty">Aún no hay deportes registrados (crea un equipo primero).</div>
+      </div>
+
+      <div class="card">
+        <h3>Buscar un deporte específico</h3>
+        <div class="row-inline">
+          <input id="rankDeporte" placeholder="Ej: futsal" style="max-width:220px;" />
+          <button class="btn btn-primary btn-small" id="rankBtn">Ver ranking</button>
+        </div>
+        <table id="rankTable">
+          <thead><tr><th>#</th><th>Jugador</th><th>Edad</th><th>Equipo</th><th>Anotaciones</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <div class="empty hidden" id="rankEmpty">Ingresa una disciplina para ver el ranking.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ---------------- Estado ----------------
+// El token vive solo en memoria (no se guarda en localStorage): así el panel
+// siempre pide iniciar sesión de nuevo cada vez que se abre el archivo.
+let token = null;
+let userCorreo = null;
+let institucionesCache = [];
+let equiposCache = [];
+let institucionEditando = null;
+let equipoEditando = null;
+let jugadorEditando = null;
+
+const $ = (id) => document.getElementById(id);
+
+function getBaseUrl(){
+  // El frontend ahora se sirve desde el mismo servidor Express (mismo origen),
+  // así que usamos rutas relativas y no hace falta pedirle la URL al usuario.
+  return '';
+}
+
+function showMsg(text, ok, onLoginScreen){
+  const box = onLoginScreen ? $('msgBoxLogin') : $('msgBox');
+  box.textContent = text;
+  box.className = 'msg show ' + (ok ? 'ok' : 'err');
+  clearTimeout(box._t);
+  box._t = setTimeout(() => box.classList.remove('show'), 4500);
+}
+
+async function api(path, options = {}){
+  const url = getBaseUrl().replace(/\/$/, '') + path;
+  const headers = Object.assign({ 'Content-Type': 'application/json' }, options.headers || {});
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  const res = await fetch(url, Object.assign({}, options, { headers }));
+  let data = null;
+  try { data = await res.json(); } catch(e) {}
+  if (!res.ok) {
+    throw new Error((data && (data.error || data.mensaje)) || ('Error HTTP ' + res.status));
+  }
+  return data;
+}
+
+// ---------------- Gate: login vs app ----------------
+function showApp(){
+  $('loginScreen').classList.add('hidden');
+  $('appScreen').classList.remove('hidden');
+  $('sessionEmail').textContent = userCorreo || 'usuario';
+  setView('instituciones');
+}
+
+function showLoginGate(){
+  $('appScreen').classList.add('hidden');
+  $('loginScreen').classList.remove('hidden');
+}
+
+// Siempre inicia en la pantalla de login, sin importar sesiones anteriores.
+showLoginGate();
+
+// ---------------- Auth tabs (dentro del login gate) ----------------
+document.querySelectorAll('.auth-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    $('panel-login').classList.toggle('hidden', tab.dataset.tab !== 'login');
+    $('panel-registro').classList.toggle('hidden', tab.dataset.tab !== 'registro');
+  });
+});
+
+$('loginBtn').addEventListener('click', async () => {
+  try {
+    const data = await api('/login', {
+      method: 'POST',
+      body: JSON.stringify({ correo: $('loginCorreo').value, password: $('loginPassword').value })
+    });
+    token = data.token;
+    userCorreo = $('loginCorreo').value;
+    showApp();
+    showMsg('Login correcto. Bienvenido al panel.', true);
+  } catch (e) { showMsg(e.message, false, true); }
+});
+
+$('regBtn').addEventListener('click', async () => {
+  try {
+    const data = await api('/registro', {
+      method: 'POST',
+      body: JSON.stringify({
+        nombre: $('regNombre').value,
+        correo: $('regCorreo').value,
+        password: $('regPassword').value,
+        rol: $('regRol').value
+      })
+    });
+    showMsg(data.mensaje || 'Usuario registrado con éxito. Ya puedes iniciar sesión.', true, true);
+    $('regNombre').value = ''; $('regCorreo').value = ''; $('regPassword').value = '';
+    document.querySelector('.auth-tab[data-tab="login"]').click();
+  } catch (e) { showMsg(e.message, false, true); }
+});
+
+$('logoutBtn').addEventListener('click', () => {
+  token = null; userCorreo = null;
+  showLoginGate();
+  showMsg('Sesión cerrada.', true, true);
+});
+
+// ---------------- Navegación (post-login) ----------------
+const views = ['instituciones','equipos','jugadores','usuarios','notificaciones','reportes'];
+const titles = {
+  instituciones: ['Instituciones','Gestión de instituciones participantes'],
+  equipos: ['Equipos','Gestión de equipos por institución'],
+  jugadores: ['Jugadores','Gestión de jugadores por equipo'],
+  usuarios: ['Usuarios','Gestión de cuentas del sistema'],
+  notificaciones: ['Notificaciones','Avisos de encuentros programados por correo'],
+  reportes: ['Reportes','Analítica del torneo (acceso público)'],
+};
+
+function setView(name){
+  views.forEach(v => $('view-'+v).classList.toggle('hidden', v !== name));
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.view === name);
+  });
+  $('viewTitle').textContent = titles[name][0];
+  $('viewSubtitle').textContent = titles[name][1];
+  if (name === 'instituciones') loadInstituciones();
+  if (name === 'equipos') { loadInstituciones(true); loadEquipos(); }
+  if (name === 'jugadores') { loadEquipos(true); loadJugadores(); }
+  if (name === 'usuarios') loadUsuarios();
+  if (name === 'reportes') { loadDashboard(); loadAllRankings(); }
+}
+
+document.querySelectorAll('.nav-item').forEach(el => {
+  el.addEventListener('click', () => setView(el.dataset.view));
+});
+
+// ---------------- Instituciones ----------------
+async function loadInstituciones(silent){
+  try {
+    institucionesCache = await api('/instituciones');
+    renderInstituciones();
+    fillSelect('eqInstitucion', institucionesCache, i => i.id, i => i.nombre + ' (' + i.pais + ')');
+  } catch (e) { if (!silent) showMsg(e.message, false); }
+}
+
+function renderInstituciones(){
+  const tbody = document.querySelector('#instTable tbody');
+  tbody.innerHTML = '';
+  $('instEmpty').classList.toggle('hidden', institucionesCache.length > 0);
+  institucionesCache.forEach(inst => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td class="mono">${inst.id}</td><td>${escapeHtml(inst.nombre)}</td><td>${escapeHtml(inst.pais)}</td>
+      <td class="actions-cell">
+    <button class="btn btn-primary btn-small edit-btn">
+        Editar
+    </button>
+
+    <button class="btn btn-danger delete-btn" data-id="${inst.id}">
+        Eliminar
+    </button>
+</td>`;
+    tr.querySelector('.edit-btn').addEventListener('click', () => {
+
+    institucionEditando = inst.id;
+
+    $('instNombre').value = inst.nombre;
+    $('instPais').value = inst.pais;
+
+    $('instCreateBtn').textContent =
+        'Actualizar institución';
+});
+    tr.querySelector('.delete-btn').addEventListener('click', () => deleteInstitucion(inst.id));
+    tbody.appendChild(tr);
+  });
+}
+
+$('instCreateBtn').addEventListener('click', async () => {
+
+    try {
+
+        let data;
+
+        if (institucionEditando) {
+
+            data = await api(
+                '/instituciones/' + institucionEditando,
+                {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        nombre: $('instNombre').value,
+                        pais: $('instPais').value
+                    })
+                }
+            );
+
+            institucionEditando = null;
+
+            $('instCreateBtn').textContent =
+                'Registrar institución';
+
+        } else {
+
+            data = await api('/instituciones', {
+                method: 'POST',
+                body: JSON.stringify({
+                    nombre: $('instNombre').value,
+                    pais: $('instPais').value
+                })
+            });
+
+        }
+
+        $('instNombre').value = '';
+        $('instPais').value = '';
+
+        showMsg(data.mensaje, true);
+
+        loadInstituciones();
+
+    } catch (e) {
+        showMsg(e.message, false);
+    }
+
+});
+
+async function deleteInstitucion(id){
+  try {
+    const data = await api('/instituciones/' + id, { method: 'DELETE' });
+    showMsg(data.mensaje || 'Institución eliminada.', true);
+    loadInstituciones();
+  } catch (e) { showMsg(e.message, false); }
+}
+
+// ---------------- Equipos ----------------
+async function loadEquipos(silent){
+  try {
+    equiposCache = await api('/equipos');
+    renderEquipos();
+    fillSelect('jEquipo', equiposCache, e => e.id, e => e.nombre + ' — ' + e.deporte);
+  } catch (e) { if (!silent) showMsg(e.message, false); }
+}
+
+function renderEquipos(){
+  const tbody = document.querySelector('#eqTable tbody');
+  tbody.innerHTML = '';
+  $('eqEmpty').classList.toggle('hidden', equiposCache.length > 0);
+  equiposCache.forEach(eq => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td class="mono">${eq.id}</td><td>${escapeHtml(eq.nombre)}</td><td><span class="tag">${escapeHtml(eq.deporte)}</span></td><td>${escapeHtml(eq.institucion || '')}</td>
+      <td class="actions-cell">
+    <button class="btn btn-primary btn-small edit-btn">
+        Editar
+    </button>
+
+    <button class="btn btn-danger delete-btn" data-id="${eq.id}">
+        Eliminar
+    </button>
+</td>`;
+    tr.querySelector('.edit-btn').addEventListener('click', () => {
+
+      equipoEditando = eq.id;
+
+      $('eqNombre').value = eq.nombre;
+      $('eqDeporte').value = eq.deporte;
+      $('eqInstitucion').value = eq.institucion_id || $('eqInstitucion').value;
+
+      $('eqCreateBtn').textContent =
+        'Actualizar equipo';
+});
+    tr.querySelector('.delete-btn').addEventListener('click', () => deleteEquipo(eq.id));
+    tbody.appendChild(tr);
+  });
+}
+
+$('eqCreateBtn').addEventListener('click', async () => {
+  const institucion_id = $('eqInstitucion').value;
+  if (!institucion_id) return showMsg('Registra primero una institución.', false);
+
+  try {
+    let data;
+
+    if (equipoEditando) {
+      data = await api('/equipos/' + equipoEditando, {
+        method: 'PUT',
+        body: JSON.stringify({
+          nombre: $('eqNombre').value,
+          deporte: $('eqDeporte').value,
+          institucion_id
+        })
+      });
+      equipoEditando = null;
+      $('eqCreateBtn').textContent = 'Registrar equipo';
+    } else {
+      data = await api('/equipos', {
+        method: 'POST',
+        body: JSON.stringify({
+          nombre: $('eqNombre').value,
+          deporte: $('eqDeporte').value,
+          institucion_id
+        })
+      });
+    }
+
+    $('eqNombre').value = ''; $('eqDeporte').value = '';
+    showMsg(data.mensaje || 'Equipo guardado.', true);
+    loadEquipos();
+  } catch (e) { showMsg(e.message, false); }
+});
+
+async function deleteEquipo(id){
+  try {
+    const data = await api('/equipos/' + id, { method: 'DELETE' });
+    showMsg(data.mensaje || 'Equipo eliminado.', true);
+    loadEquipos();
+  } catch (e) { showMsg(e.message, false); }
+}
+
+// ---------------- Jugadores ----------------
+async function loadJugadores(){
+  try {
+    const jugadores = await api('/jugadores');
+    const tbody = document.querySelector('#jTable tbody');
+    tbody.innerHTML = '';
+    $('jEmpty').classList.toggle('hidden', jugadores.length > 0);
+    jugadores.forEach(j => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td class="mono">${j.id}</td><td>${escapeHtml(j.nombre)}</td><td class="mono">${j.edad}</td><td>${escapeHtml(j.equipo || '')}</td>
+        <td class="actions-cell">
+
+   <button class="btn btn-primary btn-small edit-btn">
+      Editar
+   </button>
+
+   <button class="btn btn-danger delete-btn" data-id="${j.id}">
+      Eliminar
+   </button>
+
+</td>`;
+      tr.querySelector('.edit-btn').addEventListener('click', () => {
+
+    jugadorEditando = j.id;
+
+    $('jNombre').value = j.nombre;
+    $('jEdad').value = j.edad;
+
+    $('jCreateBtn').textContent =
+        'Actualizar jugador';
+});
+      tr.querySelector('.delete-btn').addEventListener('click', () => deleteJugador(j.id));
+      tbody.appendChild(tr);
+    });
+  } catch (e) { showMsg(e.message, false); }
+}
+
+$('jCreateBtn').addEventListener('click', async () => {
+  const equipo_id = $('jEquipo').value;
+  if (!equipo_id) return showMsg('Registra primero un equipo.', false);
+
+  try {
+    let data;
+
+    if (jugadorEditando) {
+      data = await api('/jugadores/' + jugadorEditando, {
+        method: 'PUT',
+        body: JSON.stringify({
+          nombre: $('jNombre').value,
+          edad: $('jEdad').value,
+          equipo_id
+        })
+      });
+      jugadorEditando = null;
+      $('jCreateBtn').textContent = 'Registrar jugador';
+    } else {
+      data = await api('/jugadores', {
+        method: 'POST',
+        body: JSON.stringify({
+          nombre: $('jNombre').value,
+          edad: $('jEdad').value,
+          equipo_id
+        })
+      });
+    }
+
+    $('jNombre').value = ''; $('jEdad').value = '';
+    showMsg(data.mensaje || 'Jugador guardado.', true);
+    loadJugadores();
+  } catch (e) { showMsg(e.message, false); }
+});
+
+async function deleteJugador(id){
+  try {
+    const data = await api('/jugadores/' + id, { method: 'DELETE' });
+    showMsg(data.mensaje || 'Jugador eliminado.', true);
+    loadJugadores();
+  } catch (e) { showMsg(e.message, false); }
+}
+
+// ---------------- Usuarios ----------------
+async function loadUsuarios(){
+  try {
+    const usuarios = await api('/usuarios');
+    const tbody = document.querySelector('#uTable tbody');
+    tbody.innerHTML = '';
+    $('uEmpty').classList.toggle('hidden', usuarios.length > 0);
+    usuarios.forEach(u => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+<td class="mono">${u.id}</td>
+<td>${escapeHtml(u.nombre)}</td>
+<td>${escapeHtml(u.correo)}</td>
+<td><span class="tag-rol">${escapeHtml(u.rol)}</span></td>
+<td class="actions-cell">
+    <button class="btn btn-small btn-primary edit-user"
+        data-id="${u.id}"
+        data-nombre="${escapeHtml(u.nombre)}"
+        data-correo="${escapeHtml(u.correo)}"
+        data-rol="${escapeHtml(u.rol)}">
+        Editar
+    </button>
+
+    <button class="btn btn-danger delete-user"
+        data-id="${u.id}">
+        Eliminar
+    </button>
+</td>
+`;
+
+tr.querySelector('.edit-user').addEventListener('click', () => {
+    editarUsuario(
+        u.id,
+        u.nombre,
+        u.correo,
+        u.rol
+    );
+});
+
+tr.querySelector('.delete-user').addEventListener('click', () => {
+    deleteUsuario(u.id);
+});
+      tbody.appendChild(tr);
+    });
+  } catch (e) {
+    $('uEmpty').classList.remove('hidden');
+    showMsg(e.message, false);
+  }
+}
+
+$('uCreateBtn').addEventListener('click', async () => {
+  try {
+    const data = await api('/registro', {
+      method: 'POST',
+      body: JSON.stringify({
+        nombre: $('uNombre').value,
+        correo: $('uCorreo').value,
+        password: $('uPassword').value,
+        rol: $('uRol').value
+      })
+    });
+    showMsg(data.mensaje || 'Usuario registrado.', true);
+    $('uNombre').value = ''; $('uCorreo').value = ''; $('uPassword').value = '';
+    loadUsuarios();
+  } catch (e) { showMsg(e.message, false); }
+});
+
+async function deleteUsuario(id){
+  try {
+    const data = await api('/usuarios/' + id, { method: 'DELETE' });
+    showMsg(data.mensaje || 'Usuario eliminado.', true);
+    loadUsuarios();
+  } catch (e) { showMsg(e.message, false); }
+}
+async function editarUsuario(id, nombreActual, correoActual, rolActual) {
+
+  const nombre = prompt("Nombre:", nombreActual);
+  if (nombre === null) return;
+
+  const correo = prompt("Correo:", correoActual);
+  if (correo === null) return;
+
+  const rol = prompt(
+    "Rol (admin, coordinador o delegado):",
+    rolActual
+  );
+
+  if (rol === null) return;
+
+  const password = prompt(
+    "Nueva contraseña (dejar vacío para no cambiar):",
+    ""
+  );
+
+  try {
+
+    const body = {
+      nombre,
+      correo,
+      rol
+    };
+
+    if (password.trim() !== "") {
+      body.password = password;
+    }
+
+    const data = await api('/usuarios/' + id, {
+      method: 'PUT',
+      body: JSON.stringify(body)
+    });
+
+    showMsg(
+      data.mensaje || 'Usuario actualizado correctamente.',
+      true
+    );
+
+    loadUsuarios();
+
+  } catch (e) {
+    showMsg(e.message, false);
+  }
+}
+
+// ---------------- Notificaciones ----------------
+$('notiBtn').addEventListener('click', async () => {
+  try {
+    const data = await api('/notificaciones/avisar-encuentro', {
+      method: 'POST',
+      body: JSON.stringify({
+        correo_destino: $('notiCorreo').value,
+        equipo1: $('notiEquipo1').value,
+        equipo2: $('notiEquipo2').value,
+        deporte: $('notiDeporte').value,
+        fecha: $('notiFecha').value,
+        hora: $('notiHora').value
+      })
+    });
+    showMsg(data.mensaje || 'Notificación enviada.', true);
+  } catch (e) { showMsg(e.message, false); }
+});
+
+// ---------------- Reportes ----------------
+async function loadDashboard(){
+  try {
+    const data = await api('/reportes/dashboard-general');
+    const st = data.estadisticas || {};
+    $('tileJugadores').textContent = st.total_jugadores_registrados ?? '--';
+    $('tileEquipos').textContent = st.total_equipos_inscritos ?? '--';
+    $('tileEquipoLider').textContent = st.equipo_con_mas_participantes || '--';
+    $('tileEquipoLiderSub').textContent = st.cantidad_en_ese_equipo != null ? (st.cantidad_en_ese_equipo + ' jugadores') : '';
+  } catch (e) { showMsg(e.message, false); }
+}
+$('refreshDashboardBtn').addEventListener('click', () => { loadDashboard(); loadAllRankings(); });
+
+async function loadAllRankings(){
+  const container = $('allRankings');
+  container.innerHTML = '<div class="empty">Cargando rankings…</div>';
+  try {
+    const equipos = await api('/equipos');
+    const deportes = [...new Set(equipos.map(e => e.deporte).filter(Boolean))];
+
+    $('allRankingsEmpty').classList.toggle('hidden', deportes.length > 0);
+    if (deportes.length === 0) {
+      container.innerHTML = '';
+      return;
+    }
+
+    container.innerHTML = '';
+    for (const deporte of deportes) {
+      const block = document.createElement('div');
+      block.style.marginBottom = '22px';
+
+      const heading = document.createElement('h3');
+      heading.style.fontSize = '14px';
+      heading.style.margin = '0 0 8px';
+      heading.innerHTML = '<span class="tag">' + escapeHtml(deporte) + '</span>';
+      block.appendChild(heading);
+
+      try {
+        const data = await api('/reportes/maximo-anotador/' + encodeURIComponent(deporte));
+        const datos = data.datos || [];
+
+        if (datos.length === 0) {
+          const empty = document.createElement('div');
+          empty.className = 'empty';
+          empty.textContent = 'Sin anotaciones registradas todavía.';
+          block.appendChild(empty);
+        } else {
+          const table = document.createElement('table');
+          table.innerHTML = '<thead><tr><th>#</th><th>Jugador</th><th>Edad</th><th>Equipo</th><th>Anotaciones</th></tr></thead><tbody></tbody>';
+          const tbody = table.querySelector('tbody');
+          datos.forEach((row, idx) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td class="mono">${idx+1}</td><td>${escapeHtml(row.jugador)}</td><td class="mono">${row.edad}</td><td>${escapeHtml(row.equipo)}</td><td class="mono">${row.total_anotaciones}</td>`;
+            tbody.appendChild(tr);
+          });
+          block.appendChild(table);
+        }
+      } catch (e) {
+        const err = document.createElement('div');
+        err.className = 'empty';
+        err.textContent = 'No se pudo cargar este deporte: ' + e.message;
+        block.appendChild(err);
+      }
+
+      container.appendChild(block);
+    }
+  } catch (e) {
+    container.innerHTML = '';
+    showMsg(e.message, false);
+  }
+}
+
+$('rankBtn').addEventListener('click', async () => {
+  const deporte = $('rankDeporte').value.trim();
+  if (!deporte) return showMsg('Ingresa una disciplina.', false);
+  try {
+    const data = await api('/reportes/maximo-anotador/' + encodeURIComponent(deporte));
+    const tbody = document.querySelector('#rankTable tbody');
+    tbody.innerHTML = '';
+    const datos = data.datos || [];
+    $('rankEmpty').classList.toggle('hidden', datos.length > 0);
+    if (datos.length === 0) $('rankEmpty').textContent = 'Sin resultados para esa disciplina.';
+    datos.forEach((row, idx) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td class="mono">${idx+1}</td><td>${escapeHtml(row.jugador)}</td><td class="mono">${row.edad}</td><td>${escapeHtml(row.equipo)}</td><td class="mono">${row.total_anotaciones}</td>`;
+      tbody.appendChild(tr);
+    });
+  } catch (e) { showMsg(e.message, false); }
+});
+
+// ---------------- Utils ----------------
+function fillSelect(id, items, valueFn, labelFn){
+  const sel = $(id);
+  const current = sel.value;
+  sel.innerHTML = '';
+  if (items.length === 0) {
+    const opt = document.createElement('option');
+    opt.textContent = 'No hay registros disponibles';
+    opt.value = '';
+    sel.appendChild(opt);
+    return;
+  }
+  items.forEach(item => {
+    const opt = document.createElement('option');
+    opt.value = valueFn(item);
+    opt.textContent = labelFn(item);
+    sel.appendChild(opt);
+  });
+  if (current) sel.value = current;
+}
+
+function escapeHtml(str){
+  if (str == null) return '';
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+</script>
+</body>
+</html>

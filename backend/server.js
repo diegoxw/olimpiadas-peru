@@ -1,5 +1,5 @@
 // 1. CONFIGURACIÓN DE ENTORNO Y ARQUITECTURA 
-
+const path = require("path");
 require("dotenv").config();
 
 const express = require("express");
@@ -14,6 +14,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.use(express.static(path.join(__dirname, "Frontend")));
 
 // 2. PATRÓN MIDDLEWARE: CAPA DE SEGURIDAD (REQUISITO PUNTO 3)
 
@@ -37,7 +38,7 @@ function verifyToken(req, res, next) {
 
 // RUTA PRINCIPAL (Health Check)
 app.get("/", (req, res) => {
-    res.json({ mensaje: "Servidor de Olimpiadas corriendo correctamente" });
+    res.sendFile(path.join(__dirname, "Frontend", "panel-olimpiadas1.html"));
 });
 
 
@@ -111,6 +112,107 @@ app.post("/login", (req, res) => {
     });
 });
 
+// LISTAR USUARIOS
+app.get("/usuarios", verifyToken, (req, res) => {
+
+    const sql = `
+        SELECT
+            id,
+            nombre,
+            correo,
+            rol
+        FROM usuarios
+    `;
+
+    db.query(sql, (err, result) => {
+
+        if (err) {
+            return res.status(500).json({
+                error: err.message
+            });
+        }
+
+        res.json(result);
+
+    });
+
+});
+// [U] ACTUALIZAR USUARIO
+// [U] ACTUALIZAR USUARIO
+app.put("/usuarios/:id", verifyToken, async (req, res) => {
+
+    const { id } = req.params;
+    const { nombre, correo, password, rol } = req.body;
+
+    try {
+
+        let sql;
+        let valores;
+
+        if (password && password.trim() !== "") {
+
+            const passwordHash = await bcrypt.hash(password, 10);
+
+            sql = `
+                UPDATE usuarios
+                SET nombre = ?, correo = ?, password = ?, rol = ?
+                WHERE id = ?
+            `;
+
+            valores = [
+                nombre,
+                correo,
+                passwordHash,
+                rol,
+                id
+            ];
+
+        } else {
+
+            sql = `
+                UPDATE usuarios
+                SET nombre = ?, correo = ?, rol = ?
+                WHERE id = ?
+            `;
+
+            valores = [
+                nombre,
+                correo,
+                rol,
+                id
+            ];
+        }
+
+        db.query(sql, valores, (err, result) => {
+
+            if (err) {
+                return res.status(500).json({
+                    error: err.message
+                });
+            }
+
+            if (result.affectedRows === 0) {
+                return res.status(404).json({
+                    error: "Usuario no encontrado"
+                });
+            }
+
+            res.json({
+                mensaje: "Usuario actualizado correctamente"
+            });
+
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            error: error.message
+        });
+
+    }
+
+});
+
 // [D] ELIMINAR USUARIO (Borrar)
 app.delete("/usuarios/:id", verifyToken, (req, res) => {
     const { id } = req.params;
@@ -122,6 +224,7 @@ app.delete("/usuarios/:id", verifyToken, (req, res) => {
         res.json({ mensaje: "Usuario eliminado correctamente de la plataforma" });
     });
 });
+
 
 
 // 4. CRUD DE INSTITUCIONES (COMPLETO)
